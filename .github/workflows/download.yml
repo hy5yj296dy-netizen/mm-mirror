@@ -1,1 +1,28 @@
 
+name: Download Mattermost ARM64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Mattermost ARM64
+        run: |
+          for V in 10.5.0 11.10.0; do
+            URL="https://releases.mattermost.com/$V/mattermost-team-edition-$V-linux-arm64.tar.gz"
+            echo "Trying $URL"
+            if curl -sfL --retry 3 -o mattermost.tar.gz "$URL"; then
+              echo "OK: downloaded $V"
+              break
+            fi
+          done
+          ls -lh mattermost.tar.gz          
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mattermost-arm64
+          path: mattermost.tar.gz
+          retention-days: 30
