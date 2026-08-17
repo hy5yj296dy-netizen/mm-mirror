@@ -11,19 +11,24 @@ jobs:
     steps:
       - name: Download
         run: |
-          for V in 10.5.0 11.10.0; do
-            URL="https://releases.mattermost.com/$V/mattermost-team-edition-$V-linux-arm64.tar.gz"
-            echo "Trying $URL"
-            if curl -sfL --retry 3 -o mattermost.tar.gz "$URL"; then
-              echo "OK: downloaded $V"
-              break
+          for V in 11.10.0 11.7.9; do
+            URL="https://releases.mattermost.com/$V/mattermost-$V-linux-arm64.tar.gz"
+            echo "Trying: $URL"
+            CODE=$(curl -sL -o mm.tgz -w "%{http_code}" --max-time 120 "$URL")
+            echo "HTTP $CODE"
+            if [ "$CODE" = "200" ]; then
+              echo "SUCCESS: $V"
+              ls -lh mm.tgz
+              exit 0
             fi
           done
-          ls -lh mattermost.tar.gz          
+          echo "ALL FAILED"
+          exit 1          
 
       - name: Upload artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: mattermost-arm64
-          path: mattermost.tar.gz
+          path: mm.tgz
           retention-days: 30
